@@ -28,19 +28,35 @@ def detect_light_buildings(image: cv2.typing.MatLike):
     kernel = numpy.ones((6, 6), numpy.uint8)
     combined = cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel)
 
-    contours, _ = cv2.findContours(combined, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    accepted = []
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if area > 300:
-            accepted.append(contour)
-    return accepted
+    return combined
+
+
+def detect_dark_buildings(image: cv2.typing.MatLike):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    low = numpy.array([127 / 2, 7 * 255 / 100, 20 * 255 / 100])
+    high = numpy.array([140 / 2, 21 * 255 / 100, 50 * 255 / 100])
+
+    mask = cv2.inRange(hsv, low, high)
+    kernel = numpy.ones((5, 5), numpy.uint8)
+    combined = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    return combined
 
 
 def main():
     original = cv2.imread(BING_IMAGE, cv2.IMREAD_COLOR)
-    contours = detect_light_buildings(original)
+
+    light = detect_light_buildings(original)
+    dark = detect_dark_buildings(original)
+
+    combined = cv2.bitwise_or(light, dark)
+
+    contours, _ = cv2.findContours(combined, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     for contour in contours:
+        area = cv2.contourArea(contour)
+        if area < 300:
+            continue
         rect = cv2.minAreaRect(contour)
         box = cv2.boxPoints(rect)
         box = box.astype(int)
