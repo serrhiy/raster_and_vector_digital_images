@@ -4,7 +4,6 @@ import cv2, numpy
 RESOURCES_DIR = os.path.normpath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "resources")
 )
-BING_IMAGE = os.path.join(RESOURCES_DIR, "bing.png")
 
 
 def detect_light_buildings(image: cv2.typing.MatLike):
@@ -43,8 +42,8 @@ def detect_dark_buildings(image: cv2.typing.MatLike):
     return combined
 
 
-def main():
-    original = cv2.imread(BING_IMAGE, cv2.IMREAD_COLOR)
+def detect_buildings_from_bing_map(image_path: str):
+    original = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
     light = detect_light_buildings(original)
     dark = detect_dark_buildings(original)
@@ -62,7 +61,14 @@ def main():
         box = box.astype(int)
         cv2.drawContours(original, [box], 0, (0, 255, 0), 2)
 
-    cv2.imshow("Original", original)
+    return original
+
+
+def main():
+    bing_image = os.path.join(RESOURCES_DIR, "bing.png")
+    bing_result = detect_buildings_from_bing_map(bing_image)
+
+    cv2.imshow("Bing map", bing_result)
     cv2.waitKey(0)
 
 
